@@ -21,6 +21,12 @@ def solve():
                     abs(col1 - col2) and row1 != row2,
                     (col1, col2),
                 )
+                problem.addConstraint(
+                    lambda row2, row1, col2=col2,
+                    col1=col1: abs(row1 - row2) !=
+                    abs(col1 - col2) and row1 != row2,
+                    (col2, col1),
+                )
     solutions = problem.getSolutions()
     return solutions, size
 

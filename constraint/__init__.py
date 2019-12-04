@@ -41,6 +41,8 @@ import random
 import copy
 from .compat import xrange
 
+from .consistency import pc1,ac1
+
 __all__ = [
     "Problem",
     "Variable",
@@ -294,7 +296,19 @@ class Problem(object):
             domain.resetState()
             if not domain:
                 return None, None, None
-        # doArc8(getArcs(domains, constraints), domains, {})
+
+        print('--- ARC CONSISTENCY ---\n')
+
+        print ('Domains before arc consistency:',self._variables)
+        arcs = getArcs(domains, constraints)
+        ac1(arcs,self)
+        print('Domains after arc consistency:', self._variables)
+
+        print ('\n--- PATH CONSISTENCY ---\n')
+        pc1(self)
+
+        ##############
+
         return domains, constraints, vconstraints
 
 
@@ -316,8 +330,8 @@ def getArcs(domains, constraints):
             variable1, variable2 = variables
             arcs.setdefault(variable1, {}).setdefault(variable2, []).append(x)
             arcs.setdefault(variable2, {}).setdefault(variable1, []).append(x)
-    return arcs
 
+    return arcs
 
 def doArc8(arcs, domains, assignments):
     """
@@ -326,6 +340,7 @@ def doArc8(arcs, domains, assignments):
     @attention: Currently unused.
     """
     check = dict.fromkeys(domains, True)
+    #print (check)
     while check:
         variable, _ = check.popitem()
         if variable not in arcs or variable in assignments:
@@ -499,7 +514,8 @@ class BacktrackingSolver(Solver):
                 # We have a variable. Do we have any values left?
                 if not values:
                     # No. Go back to last variable, if there's one.
-                    del assignments[variable]
+                    if variable in assignments:
+                        del assignments[variable]
                     while queue:
                         variable, values, pushdomains = queue.pop()
                         if pushdomains:
