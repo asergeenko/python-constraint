@@ -100,6 +100,18 @@ The following solvers are available:
 - Recursive backtracking solver
 - Minimum conflicts solver
 
+Arc consistency and path consistency
+-----------------------------------
+
+Currently works with Queens problem and Map coloring problem (binary constraints)
+Go to examples directory and choose queens or map_coloring directory.
+
+.. code-block:: shell
+
+    $ python queens.py -s
+
+    $ python map_coloring.py
+
 
 .. role:: python(code)
    :language: python
@@ -126,7 +138,8 @@ Download and install
 
 .. code-block:: shell
 
-    $ pip install python-constraint
+    $ python setup.py build
+    $ python setup.py install
 
 Roadmap
 -------
