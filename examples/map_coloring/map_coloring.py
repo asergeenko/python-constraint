@@ -3,8 +3,11 @@ import time
 
 def solve():
     problem = Problem()
+    # Countries
     countries = ['A','B','C']
+    # Number of colors
     num_colors = 2
+    # Neighbours on the map
     neighbours = ['AB','BC','CA']
 
     neighbours = [''.join(sorted(n)) for n in neighbours]
