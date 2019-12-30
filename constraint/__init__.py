@@ -42,6 +42,7 @@ import copy
 from .compat import xrange
 
 from .consistency import pc1,ac1
+import json
 
 __all__ = [
     "Problem",
@@ -232,7 +233,7 @@ class Problem(object):
             return None
         return self._solver.getSolution(domains, constraints, vconstraints)
 
-    def getSolutions(self):
+    def getSolutions(self,ac=False,pc=False):
         """
         Find and return all solutions to the problem
 
@@ -248,7 +249,7 @@ class Problem(object):
         @return: All solutions for the problem
         @rtype: list of dictionaries mapping variables to values
         """
-        domains, constraints, vconstraints = self._getArgs()
+        domains, constraints, vconstraints = self._getArgs(ac=ac,pc=pc)
         if not domains:
             return []
         return self._solver.getSolutions(domains, constraints, vconstraints)
@@ -276,7 +277,7 @@ class Problem(object):
             return iter(())
         return self._solver.getSolutionIter(domains, constraints, vconstraints)
 
-    def _getArgs(self):
+    def _getArgs(self,ac=False,pc=False):
         domains = self._variables.copy()
         allvariables = domains.keys()
         constraints = []
@@ -297,16 +298,19 @@ class Problem(object):
             if not domain:
                 return None, None, None
 
-        print('--- ARC CONSISTENCY ---\n')
+        if ac:
+            print('--- ARC CONSISTENCY ---\n')
 
-        print ('Domains before arc consistency:',self._variables)
-        arcs = getArcs(domains, constraints)
-        ac1(arcs,self)
-        print('Domains after arc consistency:', self._variables)
+            print ('Domains before arc consistency:')
+            print (json.dumps(self._variables))
+            arcs = getArcs(domains, constraints)
+            ac1(arcs,self)
+            print ('Domains after arc consistency:')
+            print (json.dumps(self._variables))
 
-        print ('\n--- PATH CONSISTENCY ---\n')
-        pc1(self)
-
+        if pc:
+            print ('\n--- PATH CONSISTENCY ---\n')
+            pc1(self)
         ##############
 
         return domains, constraints, vconstraints

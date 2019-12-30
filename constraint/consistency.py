@@ -1,5 +1,9 @@
+import itertools
+
 def arc_revise(var1,var2,problem,constraints_for_variable):
-    domain1 = problem._variables[var1]#domains[var1]
+    '''Implements REVISE procedure from AC1 algorithm'''
+
+    domain1 = problem._variables[var1]
     ind_to_del = []
     domain_changed = False
     for ind1, a1 in enumerate(domain1):
@@ -9,20 +13,14 @@ def arc_revise(var1,var2,problem,constraints_for_variable):
             for a2 in problem._variables[var2]:
                 if not found:
                     for constr in constraints_for_variable[var2]:
-                    #constr = constraints_for_variable[var2][0]
-                    #res = constr[0]((var1,var2),domains,{var1:a1,var2:a2})
                         vars = tuple(constr[1])
                         if tuple(vars) == (var1, var2):
                             res = constr[0](constr[1], problem._variables, {vars[0]: a1, vars[1]: a2})
-                            #print (f'{vars[0]}={a1}, {vars[1]}={a2}, res={res}')
                             if res and not found:
                                 found = True
                                 break
                 else:
                     break
-
-            # check constraint for a1 and a2
-            # if True then not_found = False & break
         if not found:
             print ('Remove',domain1[ind1],'from domain',domain1,'for variable',var1)
             domain_changed = True
@@ -30,12 +28,12 @@ def arc_revise(var1,var2,problem,constraints_for_variable):
 
     if ind_to_del:
         problem._variables[var1] = [domain1[idx] for idx,_ in enumerate(domain1) if idx not in ind_to_del]
-
     return domain_changed
 
 
 
 def ac1(arcs, problem):
+    '''Implements AC1 procedure'''
     domain_changed = True
     if arcs:
         while domain_changed:
@@ -44,12 +42,11 @@ def ac1(arcs, problem):
                 var1 = arc[0]
                 for arc_item in arc[1].items():
                     var2 = arc_item[0]
-
                     res = arc_revise(var1, var2,problem,arc[1])
-                    #print(f'Revise ({var1},{var2})={res}')
                     domain_changed = res or domain_changed
 
 def path_revise(var1, var2, var3,problem):
+    '''Implements PATH_REVISE procedure from PC1 algorithm'''
     for idx, constraint in enumerate(problem._constraints):
         vars = constraint[1]
         if len(vars)==2 and tuple(vars)==(var1,var2):
@@ -86,29 +83,13 @@ def path_revise(var1, var2, var3,problem):
                             return True
     return False
 
-
-    #for each pair (ai, aj) ∈ Rij
-         #if there is no ak ∈ Dk such that (ai, ak ) ∈ Rik and (aj , ak ) ∈ Rjk
-            #then remove (ai, aj) from Rij
-         #endif
-    #endfo
-    return False
-
-
 def pc1(problem):
-    import itertools
-
+    '''Implements PC1 algorithm'''
     variables = problem._variables
     constraint_changed = True
     while constraint_changed:
         constraint_changed = False
         for triple in itertools.permutations(variables,3):
-            #print (triple)
             constraint_changed = constraint_changed or path_revise(triple[0],triple[1],triple[2],problem)
-            #if constraint_changed: break
-    # repeat
-        #for each (ordered) triple of variables vi, vj, vk :
-            #path_revise(var1, var2, var3)
-        #endfor
-    #until no constraint is changed
+
 

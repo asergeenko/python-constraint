@@ -1,0 +1,147 @@
+\documentclass[a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+\usepackage{titlesec}
+\newcommand{\sectionbreak}{\clearpage}
+
+\begin{document}
+\title{Solving constraint satisfaction problems using arc consistency and path consistency techniques}
+\maketitle
+\section{Local consistency algorithms}
+\subsection{Arc consistency}
+For the arc consistency we use AC1 algorithm.
+\begin{algorithm}
+    \caption{AC1 algorithm}
+    \begin{algorithmic}[1]
+        \Procedure{Revise}{$v_i,v_j$}\Comment{a network with two variables $v_i$,$v_j$, domains $D_i$ and $D_j$, and constraint $R_{ij}$ }
+            \For {each $ a_i\in D_i$}
+                \If {there is no $a_j \in D_j$ with $(a_i,a_j) \in R_{ij}$}
+                    \State {remove $a_i$ from $D_i$}
+                \EndIf
+            \EndFor
+        \EndProcedure
+    \end{algorithmic}
+    \begin{algorithmic}[2]
+        \Procedure{AC1}{$N$}\Comment{a constraint network $N = <V,D,C>$}
+            \Repeat
+                \For {each arc $(v_i, v_j)$ with $R _{ij}\in C$}
+                    \State{Revise$(v_i,v_j)$}
+                    \State{Revise$(v_j,v_i)$}
+                \EndFor
+            \Until{no domain is changed}
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
+\subsection{Path consistency}
+For the path consistency we use PC1 algorithm.
+\begin{algorithm}
+    \caption{PC1 algorithm}
+    \begin{algorithmic}[1]
+        \Procedure{Path\_Revise}{$\{v_i,v_j\},v_k$}\Comment{a binary network $<V,D,C>$ with variables $v_i$,$v_j$,$v_k$}
+            \For {each pair $ (a_i,a_j)\in R_{ij}$}
+                 \If {there is no $a_k \in D_k$ such that $(a_i,a_k) \in R_{ik}$ and $(a_j,a_k) \in R_{jk}$} \State {remove $(a_i,a_j)$ from $R_{ij}$}
+                \EndIf
+            \EndFor
+        \EndProcedure
+    \end{algorithmic}
+    
+    \begin{algorithmic}[2]
+        \Procedure{PC1}{$N$}\Comment{a constraint network $N = <V,D,C>$}
+            \Repeat
+                \For {each (ordered) triple of variables $v_i, v_j, v_k$}
+                    \State{Path\_Revise$({v_i,v_j},v_k)$}
+                \EndFor
+            \Until{no constraint is changed}
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
+\section{Python implementation}
+For the implementation we use modified \textbf{python\_constraint} module.
+\subsection{Installation}
+\begin{itemize}
+    \item Clone the repository \newline \texttt{git clone https://github.com/asergeenko/python-constraint.git}
+    \item Build and setup the module \newline \texttt{python setup.py build}\newline \texttt{python setup.py install}
+\end{itemize}
+\subsection{Module overview}
+Python implementations of the AC1 and PC1 algorithms are located in \texttt{consistency.py} file. There are four methods:\\\\
+\textbf{arc\_revise}\textit{(var1,var2,problem,constraints\_for\_variable)}\\
+\textit{\#Implements REVISE procedure from AC1 algorithm}\\
+
+\textbf{Input:}
+
+\textit{var1} and \textit{var2} - variables to revise,
+
+\textit{problem} - \textbf{python\_constraint}'s \textit{Problem} instance,
+
+\textit{constraints\_for\_variable} - dictionary with constraints for variable \textit{var1}
+
+(returned by \textit{getArcs} function from \textbf{constraint} module).\\
+
+
+\textbf{Output:}
+
+Returns \textit{True} if arc \textit{(var1,var2)} is not arc-consistent
+
+and some values are removed from the domain.\\\\
+\textbf{ac1}\textit{(arcs, problem)}\\
+\textit{\#Implements AC1 procedure}\\
+ 
+\textbf{Input:}
+
+\textit{arcs} - arcs (returned by \textit{getArcs} function from \textbf{constraint} module),
+
+\textit{problem} - \textbf{python\_constraint}'s \textit{Problem} instance\\\\ 
+\textbf{path\_revise}\textit{(var1, var2, var3,problem)}\\
+\textit{\#Implements PATH\_REVISE procedure from PC1 algorithm}\\
+
+
+\textbf{Input:}
+
+\textit{var1},\textit{var2}.\textit{var3} - variables to revise,
+
+\textit{problem} - \textbf{python\_constraint}'s \textit{Problem} instance\\
+
+
+\textbf{Output:}
+
+Returns \textit{True} if the pair \textit{(var1,var2)} is not path-consistent relative to \textit{var3}
+
+and some values are removed.\\\\
+\textbf{pc1}\textit{(problem)}\\
+\textit{\#Implements PC1 procedure}\\
+
+
+\textbf{Input:}
+
+\textit{problem} - \textbf{python\_constraint}'s \textit{Problem} instance\\
+ 
+\section{Problem solving examples}
+\subsection{Examples overview}
+These algorithms are suitable for CSP problems with binary constraints. So we have \textit{N-Queens problem} (can be found in \texttt{examples/queens/queens.py}) and \textit{Map coloring problem} (can be found in \texttt{examples/map\_coloring/map\_coloring.py}).
+N-queens example is the part of the original \textbf{python\_constraint} module and has just one parameter:\\
+
+\texttt{size = 8} \textit{\# size of the chessboard}\\\\
+Map coloring example is new and has the following parameters:\\
+
+\texttt{countries = ['A','B','C']} \textit{\# countries}
+
+\texttt{num\_colors = 2} \textit{\# number of colors}
+
+\texttt{neighbors = ['AB','BC','CA']} \textit{\# countries that border each other}
+\subsection{Command-line parameters}
+
+\texttt{python queens.py [-h] [-s]\footnote{This parameter is used only with \texttt{queens.py} example.} [-ac] [-pc]}\\
+\texttt{python map\_coloring.py [-h] [-ac] [-pc]}\\\\
+\texttt{-h} - show help message\\
+\texttt{-s} - show solutions on the chessboard (doesn't show by default)\\
+\texttt{-ac} - use arc consistency algorithm (not used by default)\\
+\texttt{-pc} - use path consistency algorithm (not used by default)\\
+\end{document}
+
